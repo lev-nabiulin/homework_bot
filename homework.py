@@ -101,11 +101,7 @@ def check_tokens():
 
 
 def main():
-    """Основная логика работы бота.
-       Включаем, устанавлием время(начала работы),
-       Проверяем 'все ли на месте',
-       Проверяем апи, статус,
-       Если что-то не так, отправляем в message и логаем."""
+    """Основная логика работы бота."""
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = 0
     check_result = check_tokens()
