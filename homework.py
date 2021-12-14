@@ -7,6 +7,8 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
+from exceptions import APIAnswerError
+
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -31,12 +33,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class APIAnswerError(Exception):
-    """Кастомная ошибка при незапланированной работе API."""
-
-    pass
-
-
 def send_message(bot, message: str) -> None:
     """Отправляет сообщение или ошибку отправки."""
     logger.info(f'Отправка сообщения: {message}'
@@ -56,25 +52,25 @@ def get_api_answer(current_timestamp):
     except Exception:
         message = 'API ведет себя незапланированно'
         raise APIAnswerError(message)
-    try:
-        if response.status_code != HTTPStatus.OK:
-            message = 'Эндпоинт не отвечает'
-            raise Exception(message)
-    except Exception:
-        message = 'API ведет себя незапланированно'
-        raise APIAnswerError(message)
+    if response.status_code != HTTPStatus.OK:
+        message = 'Эндпоинт не отвечает'
+        raise Exception(message)
     return response.json()
 
 
 def check_response(response):
     """Проверяет полученный ответ API на корректность и наличие домашек."""
+    if not response:
+        message = 'Пусто'
+        raise TypeError(message)
     if not isinstance(response, dict):
         message = 'Ответ API не словарь'
         raise TypeError(message)
-    if ['homeworks'][0] not in response:
-        message = 'В ответе API нет домашней работы'
-        raise IndexError(message)
-    homework = response.get('homeworks')[0]
+    homework = response.get('homeworks')
+    if not isinstance(homework, list) or homework is None:
+        message = 'Ответ API не список или он пуст'
+        raise TypeError(message)
+
     return homework
 
 
